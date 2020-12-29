@@ -1,4 +1,10 @@
 pipeline {
+
+    environment {
+    registry = "vijaykj40/docker-web-app"
+    registryCredential = 'dockerhub'
+    dockerImage = ''
+    }
     agent any
     stages {
         stage('Build Application') {
@@ -13,18 +19,27 @@ pipeline {
             }
         }
 
-        stage('Create Tomcat Docker Image'){
-            steps {
-                sh "pwd"
-                sh "docker build . -t vijaykj40/docker-web-app:${env.BUILD_ID}"
-            }
+        stage('Building image') {
+      steps{
+        script {
+          dockerImage = docker.build registry + ":$BUILD_NUMBER"
         }
-
-        stage('Push Docker Image to repo'){
-            steps {
-                sh "docker push vijaykj40/docker-web-app:${env.BUILD_ID}"
-            }
+      }
+    }
+    stage('Deploy Image') {
+      steps{
+        script {
+          docker.withRegistry( '', registryCredential ) {
+            dockerImage.push()
+          }
         }
+      }
+    }
+    stage('Remove Unused docker image') {
+      steps{
+        sh "docker rmi $registry:$BUILD_NUMBER"
+      }
+    }
 
     }
 }
