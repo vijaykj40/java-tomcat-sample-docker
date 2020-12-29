@@ -20,5 +20,11 @@ pipeline {
             }
         }
 
+        stage('Push Docker Image to repo'){
+            steps {
+                sh "docker push vijaykj40/docker-web-app:${env.BUILD_ID}"
+            }
+        }
+
     }
 }
